@@ -1,0 +1,23 @@
+name: self-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Bash syntax
+        run: for file in bin/*.sh install.sh uninstall.sh; do bash -n "$file"; done
+      - name: Check Python syntax
+        run: for file in bin/*.py; do python3 -m py_compile "$file"; done
+      - name: Run ShellCheck
+        run: shellcheck bin/*.sh install.sh uninstall.sh

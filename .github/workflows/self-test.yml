@@ -1,0 +1,25 @@
+name: self-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Bash syntax
+        run: for file in scripts/*.sh; do bash -n "$file"; done
+      - name: Check Python syntax
+        run: for file in scripts/*.py; do python3 -m py_compile "$file"; done
+      - name: Run ShellCheck
+        run: shellcheck scripts/*.sh
+      - name: Verify this repository's workflows
+        run: ./scripts/verify.sh .
