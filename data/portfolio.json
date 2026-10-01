@@ -1,0 +1,16 @@
+{
+  "name": "GitHub Actions Control Suite",
+  "edition": "2026.10",
+  "description": "Find the fuse, stop the fire, and verify the guardrails.",
+  "projects": [
+    {"name": "gha-emergency-kit", "role": "contain"},
+    {"name": "gha-runaway-fix", "role": "repair"},
+    {"name": "gha-control", "role": "control"}
+  ],
+  "contact": {
+    "careers": "careers@fedpromptly.com",
+    "support": "support@fedpromptly.com",
+    "business": "business@fedpromptly.com",
+    "contact": "contact@fedpromptly.com"
+  }
+}
