@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="GitHub Actions Control Suite — find the fuse, stop the fire, verify the guardrails.">
+<link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+<title>The fuse finder · GitHub Actions Control Suite</title>
+<style>
+:root {
+  --paper: #20252b;
+  --paper-deep: #2a3137;
+  --ink: #f3eddf;
+  --muted: #b9b3a5;
+  --rule: #5a6267;
+  --red: #ef6a54;
+  --blue: #70b9d7;
+  --ochre: #e2b451;
+  --green: #7db18b;
+  --shadow: 7px 7px 0 rgba(0,0,0,.35);
+  --serif: Georgia, 'Times New Roman', serif;
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+}
+[data-theme="paper"] {
+  --paper: #f3eddf;
+  --paper-deep: #e5dbc8;
+  --ink: #20252b;
+  --muted: #5d625e;
+  --rule: #a9a18f;
+  --red: #c84232;
+  --blue: #1d5f7a;
+  --ochre: #c89024;
+  --green: #477553;
+  --shadow: 7px 7px 0 rgba(32,37,43,.16);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; color: var(--ink); background: var(--paper); font-family: var(--mono);
+  line-height: 1.6; min-width: 320px; overflow-x: hidden;
+}
+.ambient-field {
+  position: fixed; inset: -18%; z-index: -3; pointer-events: none; opacity: .52;
+  background:
+    radial-gradient(circle at 14% 22%, color-mix(in srgb, var(--red) 24%, transparent) 0 7%, transparent 23%),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--blue) 22%, transparent) 0 8%, transparent 26%),
+    radial-gradient(circle at 64% 82%, color-mix(in srgb, var(--ochre) 16%, transparent) 0 6%, transparent 22%);
+  background-size: 112% 118%, 126% 110%, 118% 124%;
+  animation: ambientDrift 24s ease-in-out infinite alternate;
+}
+.ambient-field::before {
+  content: ''; position: absolute; inset: 0; opacity: .33;
+  background: repeating-linear-gradient(90deg, transparent 0 78px, color-mix(in srgb, var(--blue) 18%, transparent) 79px 80px), repeating-linear-gradient(0deg, transparent 0 78px, color-mix(in srgb, var(--red) 15%, transparent) 79px 80px);
+  transform: rotate(-4deg) scale(1.14);
+  animation: gridCreep 31s linear infinite;
+}
+.ambient-field::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 18%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  opacity: .7; box-shadow: 0 0 0 1px color-mix(in srgb, var(--red) 16%, transparent);
+  animation: scanLine 11s ease-in-out infinite;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -2; opacity: .42;
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--rule) 32%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in srgb, var(--rule) 32%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px; animation: paperShift 18s linear infinite;
+}
+body::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .14;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(20,20,20,.18) 4px), repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 1px, transparent 1px 5px);
+  mix-blend-mode: screen;
+}
+@keyframes paperShift { from { transform: translate3d(0,0,0); } to { transform: translate3d(32px,32px,0); } }
+@keyframes fuseFlicker { 0%,100% { opacity: .74; } 45% { opacity: 1; } 52% { opacity: .52; } }
+@keyframes revealUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ambientDrift { 0% { transform: translate3d(-2%, -1%, 0) rotate(-2deg); } 50% { transform: translate3d(2%, 1%, 0) rotate(2deg); } 100% { transform: translate3d(-1%, 3%, 0) rotate(-1deg); } }
+@keyframes gridCreep { from { transform: rotate(-4deg) scale(1.14) translate3d(-2%,0,0); } to { transform: rotate(-2deg) scale(1.14) translate3d(2%,2%,0); } }
+@keyframes scanLine { 0%,100% { transform: translateY(-8vh); opacity: 0; } 15%,80% { opacity: .72; } 50% { transform: translateY(74vh); } }
+@keyframes cardSweep { from { transform: translateX(-115%) rotate(7deg); } to { transform: translateX(230%) rotate(7deg); } }
+@keyframes beaconBlink { 0%,100% { opacity: .38; transform: scaleX(.72); } 50% { opacity: 1; transform: scaleX(1); } }
+@keyframes widgetBob { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5px) rotate(-.5deg); } }
+@keyframes substackTrace { 0%,100% { width: 16%; } 50% { width: 82%; } }
+.skip { position: absolute; left: 1rem; top: -4rem; background: var(--ink); color: var(--paper); padding: .5rem .8rem; z-index: 20; }
+.skip:focus { top: .8rem; }
+.site-header { border-bottom: 2px solid var(--ink); padding: 1rem 4vw .8rem; position: relative; }
+.header-inner { max-width: 1240px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.wordmark { font-weight: 900; letter-spacing: -.08em; font-size: 1.05rem; text-decoration: none; color: var(--ink); }
+.wordmark b { color: var(--red); }
+.nav { display: flex; flex-wrap: wrap; gap: .25rem .9rem; align-items: center; }
+.nav a { color: var(--ink); text-decoration: none; font-size: .72rem; padding: .25rem 0; border-bottom: 1px solid transparent; }
+.nav a:hover, .nav a:focus, .nav a[aria-current="page"] { border-bottom-color: var(--red); color: var(--red); }
+.support-link { color: var(--paper) !important; background: var(--red); padding: .38rem .6rem !important; border: 1px solid var(--red) !important; box-shadow: 3px 3px 0 var(--ink); }
+.support-link:hover, .support-link:focus { color: var(--red) !important; background: var(--paper); }
+.theme-toggle { border: 1px solid var(--ink); color: var(--ink); background: transparent; font: inherit; font-size: .68rem; padding: .35rem .5rem; cursor: pointer; }
+.theme-toggle:focus, a:focus, button:focus { outline: 3px solid var(--ochre); outline-offset: 3px; }
+main { max-width: 1240px; margin: auto; padding: 4.2rem 4vw 6rem; }
+.hero { min-height: 67vh; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr); gap: 4vw; align-items: end; position: relative; }
+.kicker { font-size: .7rem; letter-spacing: .06em; color: var(--red); margin: 0 0 1.1rem; }
+h1, h2, h3 { line-height: .98; margin: 0; font-weight: 900; letter-spacing: -.09em; }
+h1 { font-size: clamp(3.2rem, 8vw, 8.6rem); max-width: 8ch; }
+h1 em { color: var(--red); font-family: var(--serif); font-weight: 400; letter-spacing: -.11em; }
+h2 { font-size: clamp(2rem, 4vw, 4.2rem); max-width: 12ch; }
+h3 { font-size: 1.35rem; }
+p { max-width: 68ch; }
+.lede { font-family: var(--serif); font-size: clamp(1.15rem, 2vw, 1.65rem); line-height: 1.25; max-width: 30ch; }
+.hero-note { border-top: 1px solid var(--ink); padding-top: 1rem; color: var(--muted); font-size: .78rem; }
+.hero-actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.4rem; }
+.button { display: inline-block; padding: .72rem .9rem; background: var(--ink); color: var(--paper); text-decoration: none; border: 1px solid var(--ink); font-size: .78rem; box-shadow: 4px 4px 0 var(--red); transition: transform .12s ease, box-shadow .12s ease, background .12s ease; }
+.button:hover, .button:focus { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--red); }
+.button.secondary { background: transparent; color: var(--ink); box-shadow: 4px 4px 0 var(--blue); }
+.fuse-panel { border: 1px solid var(--ink); min-height: 330px; padding: 1rem; position: relative; background: color-mix(in srgb, var(--paper) 80%, var(--paper-deep)); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; }
+.fuse-panel::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 3px solid var(--red); animation: fuseFlicker 2.6s steps(3) infinite; }
+.fuse-panel::after { content: 'FUSE / FIND / FIX'; position: absolute; right: .8rem; top: .65rem; writing-mode: vertical-rl; font-size: .62rem; color: var(--red); letter-spacing: .08em; }
+.fuse-mark { width: 132px; height: 132px; border: 1px solid var(--ink); border-radius: 50%; display: grid; place-items: center; background: var(--paper); transform: rotate(-7deg); position: relative; text-align: center; font-size: .68rem; }
+.fuse-mark::before, .fuse-mark::after { content: ''; position: absolute; border: 1px solid var(--blue); border-radius: 50%; inset: -18px; transform: rotate(23deg); }
+.fuse-mark::after { inset: -35px; border-color: var(--ochre); transform: rotate(-41deg); }
+.section { border-top: 2px solid var(--ink); padding-top: 1rem; margin-top: 5rem; position: relative; }
+.section::before { content: ''; position: absolute; top: -2px; left: 0; width: 22%; border-top: 4px solid var(--red); }
+.section-head { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 2rem; }
+.section-no { font-size: .68rem; color: var(--red); white-space: nowrap; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--ink); border: 1px solid var(--ink); }
+.panel { background: var(--paper); padding: 1.15rem; min-height: 190px; }
+.panel h3 { margin-bottom: .8rem; }
+.panel p, .panel li { font-size: .82rem; }
+.panel ul { margin: 0; padding-left: 1.2rem; }
+.panel .stamp { color: var(--red); font-size: .65rem; margin-bottom: .7rem; }
+.code-rail { border-left: 4px solid var(--blue); padding: .5rem 1rem; background: color-mix(in srgb, var(--paper-deep) 60%, transparent); overflow-x: auto; }
+pre { margin: 0; font-size: .76rem; line-height: 1.55; white-space: pre-wrap; }
+code { font-family: var(--mono); color: var(--blue); }
+.timeline { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.timeline article { padding: 1.1rem; border-right: 1px solid var(--ink); min-height: 160px; }
+.timeline article:last-child { border-right: 0; }
+.timeline .step { font-size: 2rem; color: var(--red); }
+.callout { margin: 2rem 0; padding: 1.2rem; border: 2px solid var(--red); background: color-mix(in srgb, var(--red) 9%, var(--paper)); box-shadow: 5px 5px 0 var(--ochre); }
+.callout strong { color: var(--red); }
+.support-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: stretch; }
+.provider-card { border: 1px solid var(--ink); padding: 1.1rem; background: color-mix(in srgb, var(--paper-deep) 72%, transparent); min-height: 180px; position: relative; overflow: hidden; isolation: isolate; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; box-shadow: 4px 4px 0 color-mix(in srgb, var(--ink) 30%, transparent); }
+.provider-card::before { content: ''; position: absolute; z-index: -1; top: 0; left: -18%; width: 18%; height: 100%; background: color-mix(in srgb, var(--red) 24%, transparent); transform: rotate(7deg); animation: cardSweep 7s ease-in-out infinite; }
+.provider-card::after { content: ''; position: absolute; left: 1.1rem; right: 1.1rem; top: 0; height: 3px; background: var(--red); transform-origin: left; animation: beaconBlink 3.2s ease-in-out infinite; }
+.provider-card:hover { transform: translateY(-6px) rotate(-.35deg); border-color: var(--red); box-shadow: 8px 8px 0 color-mix(in srgb, var(--red) 45%, transparent); }
+.provider-card:nth-child(2)::after { background: #ea4d78; animation-delay: -.7s; }
+.provider-card:nth-child(2)::before { background: color-mix(in srgb, #ea4d78 22%, transparent); animation-delay: -1.6s; }
+.provider-card:nth-child(3)::after { background: #00b9fe; animation-delay: -1.4s; }
+.provider-card:nth-child(3)::before { background: color-mix(in srgb, #00b9fe 22%, transparent); animation-delay: -2.4s; }
+.provider-card:nth-child(4)::after { background: #ffdd00; animation-delay: -2.1s; }
+.provider-card:nth-child(4)::before { background: color-mix(in srgb, #ffdd00 22%, transparent); animation-delay: -3.2s; }
+.provider-card:nth-child(5)::after { background: #f4f4f4; animation-delay: -2.8s; }
+.provider-card:nth-child(5)::before { background: color-mix(in srgb, #f4f4f4 18%, transparent); animation-delay: -4s; }
+.provider-card:nth-child(6)::after { background: #635bff; animation-delay: -3.5s; }
+.provider-card:nth-child(6)::before { background: color-mix(in srgb, #635bff 24%, transparent); animation-delay: -4.8s; }
+.age-gate-card { border: 2px solid var(--ochre); padding: 1rem; background: color-mix(in srgb, var(--ochre) 12%, var(--paper)); box-shadow: 6px 6px 0 var(--red); margin: 1.5rem 0; }
+.age-gate-card p { margin: 0 0 .8rem; }
+.age-gate-trigger { appearance: none; border: 1px solid var(--ink); background: var(--ochre); color: #181818; padding: .7rem .9rem; font: inherit; cursor: pointer; box-shadow: 4px 4px 0 var(--red); transition: transform .15s ease, box-shadow .15s ease; }
+.age-gate-trigger:hover, .age-gate-trigger:focus { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--red); }
+.age-modal[hidden] { display: none; }
+.age-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 1.2rem; background: rgba(5,7,9,.88); }
+.age-modal__dialog { width: min(540px, 100%); border: 2px solid var(--ochre); background: var(--paper); color: var(--ink); padding: 1.5rem; box-shadow: 10px 10px 0 var(--red); position: relative; }
+.age-modal__dialog::before { content: '18+ / PAYMENT EMBEDS'; display: block; color: var(--red); font-size: .68rem; letter-spacing: .08em; margin-bottom: 1rem; }
+.age-modal__dialog h2 { font-size: clamp(2rem, 6vw, 3.8rem); max-width: 9ch; margin-bottom: .8rem; }
+.age-modal__dialog p { font-size: .82rem; }
+.age-modal__actions { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1rem; }
+.age-modal__leave { background: transparent; color: var(--ink); border: 1px solid var(--ink); box-shadow: none; }
+.footer-support-strip { display: flex; justify-content: space-between; align-items: center; gap: 1rem; border: 1px solid var(--red); padding: .8rem 1rem; margin: 1.2rem 0; background: color-mix(in srgb, var(--red) 9%, var(--paper)); }
+.footer-support-strip p { margin: 0; font-size: .72rem; }
+.footer-support-strip .payment-embed { display: inline-block; }
+.footer-support-strip .payment-embed[hidden] + .age-gate-trigger { display: inline-block; }
+.footer-support-strip .payment-embed:not([hidden]) + .age-gate-trigger { display: none; }
+.provider-card h3 { margin-bottom: .55rem; }
+.provider-card p { font-size: .78rem; color: var(--muted); }
+.provider-card iframe, .provider-card img, .provider-card stripe-buy-button { max-width: 100%; position: relative; z-index: 1; }
+.provider-card iframe, .provider-card stripe-buy-button { animation: widgetBob 4.4s ease-in-out infinite; animation-delay: -1.2s; }
+.provider-card:nth-child(4) img, .provider-card:nth-child(5) img { animation: widgetBob 5.2s ease-in-out infinite; animation-delay: -2.3s; }
+.provider-card stripe-buy-button { display: block; min-height: 48px; }
+.provider-card--wide { grid-column: 1 / -1; }
+.substack-embed { max-width: 560px; border: 1px solid var(--ink); padding: 1rem; background: var(--paper); position: relative; overflow: hidden; box-shadow: 7px 7px 0 #ff6719; }
+.substack-embed::before { content: ''; display: block; height: 4px; width: 16%; background: #ff6719; margin: -.1rem 0 1rem; animation: substackTrace 4.8s ease-in-out infinite; }
+.substack-embed::after { content: 'GITFED SIGNAL'; position: absolute; right: -1.5rem; top: 1.7rem; color: #ff6719; font-size: .55rem; letter-spacing: .12em; transform: rotate(90deg); }
+.substack-embed .pub-header { display: flex; gap: .7rem; align-items: center; margin-bottom: 1rem; }
+.substack-embed .pub-logo { width: 34px; height: 34px; display: grid; place-items: center; background: #ff6719; color: #fff; font-weight: 800; }
+.substack-embed .pub-name { font-weight: 800; }
+.substack-embed .pub-url, .substack-embed .fine, .substack-embed .msg { color: var(--muted); font-size: .72rem; }
+.substack-embed .headline { font-family: var(--serif); font-size: 1.35rem; margin: 0 0 .35rem; }
+.substack-embed .tagline { color: var(--muted); font-size: .8rem; }
+.substack-embed form { display: flex; flex-direction: column; gap: .6rem; }
+.substack-embed .row { display: flex; gap: .5rem; }
+.substack-embed input { min-width: 0; flex: 1; padding: .65rem; font: inherit; color: var(--ink); background: var(--paper-deep); border: 1px solid var(--rule); }
+.substack-embed button { padding: .65rem .8rem; font: inherit; color: #fff; background: #ff6719; border: 0; cursor: pointer; }
+.substack-embed .fine { line-height: 1.4; }
+.page-intro { display: grid; grid-template-columns: .8fr 1.2fr; gap: 3rem; align-items: end; margin-bottom: 4rem; }
+.page-intro h1 { font-size: clamp(3rem, 7vw, 7rem); max-width: 7ch; }
+.page-intro .lede { max-width: 42ch; }
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin: 2rem 0; }
+.stat { border-top: 4px solid var(--blue); padding-top: .6rem; }
+.stat b { display: block; font-size: clamp(2rem, 5vw, 4rem); line-height: 1; }
+details { border-top: 1px solid var(--ink); padding: 1rem 0; }
+summary { cursor: pointer; font-weight: 800; }
+.site-footer { border-top: 2px solid var(--ink); padding: 2.4rem 4vw 3.2rem; max-width: 1240px; margin: auto; color: var(--muted); }
+.footer-hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 2rem; align-items: end; padding-bottom: 2rem; border-bottom: 1px solid var(--rule); }
+.footer-kicker { color: var(--red); font-size: .66rem; letter-spacing: .08em; margin: 0 0 .7rem; }
+.footer-hero h2 { max-width: 10ch; font-size: clamp(2rem, 5vw, 4.5rem); }
+.footer-hero p { font-family: var(--serif); font-size: 1.1rem; max-width: 34ch; margin: 0; }
+.footer-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); margin: 1.4rem 0; border: 1px solid var(--rule); }
+.footer-group { background: var(--paper); padding: 1rem; min-height: 145px; }
+.footer-group h3 { font-size: .8rem; letter-spacing: .02em; margin-bottom: .7rem; }
+.footer-group a, .site-footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+.footer-group a:hover, .footer-group a:focus, .site-footer a:hover, .site-footer a:focus { color: var(--red); border-bottom-color: var(--red); }
+.footer-links { display: flex; flex-wrap: wrap; gap: .35rem .9rem; font-size: .7rem; }
+.footer-links a::before { content: '↗ '; color: var(--red); }
+.footer-more { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: .8rem 0; font-size: .72rem; }
+.footer-more summary { list-style: none; color: var(--ink); }
+.footer-more summary::-webkit-details-marker { display: none; }
+.footer-more summary::before { content: '+ '; color: var(--red); }
+.footer-more[open] summary::before { content: '− '; }
+.footer-more .footer-links { padding-top: .8rem; }
+.footer-meta { display: flex; justify-content: space-between; gap: 1rem; padding-top: 1.2rem; font-size: .68rem; }
+.not-found { text-align: center; min-height: 65vh; display: grid; place-items: center; }
+.not-found h1 { max-width: none; font-size: clamp(5rem, 18vw, 15rem); color: var(--red); }
+.signal { border: 1px solid var(--ink); padding: 1rem; display: inline-block; transform: rotate(2deg); box-shadow: 7px 7px 0 var(--blue); }
+.reveal { animation: revealUp .55s ease both; }
+.reveal:nth-child(2) { animation-delay: .08s; } .reveal:nth-child(3) { animation-delay: .16s; }
+@media (max-width: 820px) {
+  .header-inner { align-items: flex-start; flex-direction: column; }
+  .nav { gap: .4rem .75rem; }
+  main { padding-top: 3rem; }
+  .hero, .page-intro { grid-template-columns: 1fr; min-height: auto; }
+  .hero { gap: 2.4rem; }
+  .grid-3, .timeline { grid-template-columns: 1fr; }
+  .timeline article { border-right: 0; border-bottom: 1px solid var(--ink); }
+  .timeline article:last-child { border-bottom: 0; }
+  .stats { grid-template-columns: 1fr; }
+  .support-stack { grid-template-columns: 1fr; }
+  .provider-card--wide { grid-column: auto; }
+  .substack-embed .row { flex-direction: column; }
+  .footer-hero { grid-template-columns: 1fr; }
+  .footer-groups { grid-template-columns: 1fr; }
+  .footer-meta { align-items: flex-start; flex-direction: column; }
+  .footer-support-strip { align-items: flex-start; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div class="ambient-field" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><div class="header-inner">
+<a class="wordmark" href="index.html">GITHUB ACTIONS <b>/</b> CONTROL SUITE</a>
+<nav class="nav" aria-label="Primary navigation"><a href="index.html" aria-current="page">Home</a><a href="support.html" >Support</a><a href="privacy.html" >Privacy</a><a href="terms.html" >Terms</a><a href="accessibility.html" >Accessibility</a><a class="support-link" href="support.html">Back the work</a><button class="theme-toggle" data-theme-toggle type="button">paper mode</button></nav>
+</div></header>
+<main id="main">
+<section class="hero">
+  <div class="reveal"><p class="kicker">FIELD MANUAL / 2026 EDITION</p><h1>Find the <em>fuse.</em><br>Stop the fire.</h1><p class="lede">A three-repository control suite for the moment GitHub Actions starts behaving like a machine with a stuck button.</p><div class="hero-actions"><a class="button" href="#map">Read the control map</a><a class="button secondary" href="support.html">Support the maintenance</a></div></div>
+  <div class="fuse-panel reveal" aria-label="Diagram showing a fuse line between diagnosis and repair"><div class="fuse-mark">RUNAWAY<br>ACTIONS<br>CONTROL</div></div>
+</section>
+<section class="section" id="map"><div class="section-head"><div><p class="kicker">THE THREE-REPO MAP</p><h2>One problem.<br>Three instruments.</h2></div><span class="section-no">01 / 04</span></div><div class="grid-3">
+<article class="panel"><p class="stamp">01 / CONTAIN</p><h3>gha-emergency-kit</h3><p>The broad operational kit: stop live runs, disable workflows, switch to manual-only mode, audit local YAML, and bring automation back deliberately.</p><a href="support.html#projects">Read its field notes →</a></article>
+<article class="panel"><p class="stamp">02 / REPAIR</p><h3>gha-runaway-fix</h3><p>A smaller remediation kit for the layered answer: spending backstop, concurrency, per-job timeout, bot guard, and a verifier that says what it can actually see.</p><a href="terms.html#claim">Read the claim →</a></article>
+<article class="panel"><p class="stamp">03 / CONTROL</p><h3>gha-control</h3><p>The long-form guide to the three places settings live, eight known fuse signatures, and a diagnostic script that starts with event, actor, and timing.</p><a href="privacy.html#data">Read the boundaries →</a></article>
+</div></section>
+<section class="section"><div class="section-head"><div><p class="kicker">THE WORKFLOW</p><h2>From siren to signal.</h2></div><span class="section-no">02 / 04</span></div><div class="timeline"><article><span class="step">01</span><h3>Contain</h3><p>Cancel live runs and disable active workflows. Containment buys thinking time; it is not a diagnosis.</p></article><article><span class="step">02</span><h3>Find</h3><p>Group the recent history by event and actor. A bot push every few seconds is a different animal from a human burst.</p></article><article><span class="step">03</span><h3>Guard</h3><p>Add concurrency, timeouts, and a job-level bot guard where the workflow’s intent supports them.</p></article><article><span class="step">04</span><h3>Verify</h3><p>Run the checker, set the billing backstop manually, then re-enable one workflow and watch it.</p></article></div></section>
+<section class="section"><div class="section-head"><div><p class="kicker">A REPRODUCIBLE START</p><h2>Five commands<br>to a calmer tab.</h2></div><span class="section-no">03 / 04</span></div><div class="code-rail"><pre><code>./scripts/stop-actions.sh owner/repo
+./scripts/find-fuse.sh owner/repo 200
+python3 ./scripts/add-guards.py /path/to/repo
+# add per-job timeout + bot guard after review
+./scripts/verify.sh /path/to/repo</code></pre></div><div class="callout"><strong>Important:</strong> set the Actions spending limit to $0 in GitHub Billing while investigating. That stops billable overage; it does not identify the fuse or prevent included-minute usage.</div></section>
+<section class="section"><div class="section-head"><div><p class="kicker">THE HONEST FOOTNOTE</p><h2>No flood-proof stickers.</h2></div><span class="section-no">04 / 04</span></div><p class="lede">The suite covers known, visible failure modes. It does not inspect account billing, third-party internals, external webhooks, or future workflows someone adds without guards.</p><div class="hero-actions"><a class="button" href="accessibility.html">Read accessibility notes</a><a class="button secondary" href="support.html">Keep the docs alive</a></div></section>
+</main>
+<footer class="site-footer">
+  <div class="footer-hero"><div><p class="footer-kicker">FEDPROMPTLY / CONTROL ROOM</p><h2>Keep the signal moving.</h2></div><p>Three repositories, one careful promise: useful tools, readable limits, and a place to find the people behind the work.</p></div>
+  <div class="footer-groups">
+    <section class="footer-group"><h3>Write the desk</h3><div class="footer-links"><a href="mailto:careers@fedpromptly.com">Careers</a><a href="mailto:support@fedpromptly.com">Support</a><a href="mailto:contact@fedpromptly.com">Contact</a><a href="mailto:business@fedpromptly.com">Business</a></div></section>
+    <section class="footer-group"><h3>Explore FED-OS</h3><div class="footer-links"><a href="https://www.fedpromptly.org" target="_blank" rel="noreferrer noopener">Ecosystem</a><a href="https://fedpromptly.com/Aid" target="_blank" rel="noreferrer noopener">Membership</a><a href="https://www.jabburr.com/fed-os" target="_blank" rel="noreferrer noopener">Storefront</a><a href="https://discord.gg/Jm4XStx4Pf" target="_blank" rel="noreferrer noopener">Developers</a></div></section>
+    <section class="footer-group"><h3>Back the work</h3><div class="footer-links"><a href="https://www.patreon.com/c/FEDpromptly" target="_blank" rel="noreferrer noopener">Supporters</a><a href="https://buymeacoffee.com/fedpromptly" target="_blank" rel="noreferrer noopener">Tips &amp; donations</a><a href="https://x.com/Fedpromptly" target="_blank" rel="noreferrer noopener">Advertisement</a></div></section>
+  </div>
+  <div class="footer-support-strip"><p><strong>Support embed desk:</strong> verify you are 18+ before revealing payment buttons.</p><div><a class="payment-embed" data-payment-embed hidden href="https://www.buymeacoffee.com/fedpromptly" target="_blank" rel="noreferrer noopener"><img data-age-src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20book&emoji=%F0%9F%93%96&slug=fedpromptly&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a book on Buy Me a Coffee"></a><button class="age-gate-trigger" data-age-gate-trigger type="button">Reveal support buttons</button></div></div>
+  <details class="footer-more"><summary>Open the full FED-OS index</summary><div class="footer-links"><a href="https://substack.com/@fedpromptly" target="_blank" rel="noreferrer noopener">Articles</a><a href="https://bsky.app/profile/fed-os.bsky.social" target="_blank" rel="noreferrer noopener">Social media</a><a href="https://fedpromptly.wordpress.com/" target="_blank" rel="noreferrer noopener">Blog post</a><a href="https://www.deviantart.com/fedpromptly" target="_blank" rel="noreferrer noopener">Artwork</a><a href="https://facebook.com/fedpromptly" target="_blank" rel="noreferrer noopener">Friends</a><a href="https://matrix.to/#/#fed-os:matrix.org" target="_blank" rel="noreferrer noopener" title="18+ only; available only to people living in Canada, Switzerland, Russia, Iran, Somalia, or Turkmenistan">Private room · 18+ / eligible countries</a></div></details>
+  <div class="footer-meta"><span>Three repos. Four guards. No magic claims.</span><span><a href="index.html">Suite index</a> · 2026 · MIT</span></div>
+</footer>
+<div class="age-modal" data-age-modal hidden role="dialog" aria-modal="true" aria-labelledby="age-title"><div class="age-modal__dialog"><h2 id="age-title">Confirm your age.</h2><p>The payment and support embeds on this site are reserved for visitors who are 18 or older. Confirm to reveal them. Your choice is stored only in this browser so you do not have to repeat it on every page.</p><div class="age-modal__actions"><button class="age-gate-trigger" data-age-confirm type="button">I am 18 or older</button><button class="age-gate-trigger age-modal__leave" data-age-leave type="button">Not now</button></div></div></div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const root = document.documentElement;
+  const toggle = document.querySelector('[data-theme-toggle]');
+  const stored = localStorage.getItem('gha-suite-theme');
+  if (stored === 'paper') root.setAttribute('data-theme', 'paper');
+  if (toggle) {
+    const update = () => { toggle.textContent = root.getAttribute('data-theme') === 'paper' ? 'dark mode' : 'paper mode'; };
+    update();
+    toggle.addEventListener('click', () => {
+      const paper = root.getAttribute('data-theme') !== 'paper';
+      if (paper) root.setAttribute('data-theme', 'paper'); else root.removeAttribute('data-theme');
+      localStorage.setItem('gha-suite-theme', paper ? 'paper' : 'dark'); update();
+    });
+  }
+  const ageKey = 'fedpromptly-age-verified';
+  const embeds = Array.from(document.querySelectorAll('[data-payment-embed]'));
+  const triggers = Array.from(document.querySelectorAll('[data-age-gate-trigger]'));
+  const modal = document.querySelector('[data-age-modal]');
+  const reveal = () => { embeds.forEach(embed => { embed.hidden = false; }); triggers.forEach(trigger => { if (trigger.hasAttribute('data-age-gate-trigger')) { trigger.textContent = 'Payment embeds unlocked'; trigger.disabled = true; } }); document.querySelectorAll('[data-age-src]').forEach(node => { if (!node.getAttribute('src')) node.setAttribute('src', node.getAttribute('data-age-src')); }); window.dispatchEvent(new Event('fedpromptly-age-verified')); if (window.loadAgeGatedProviders) window.loadAgeGatedProviders(); };
+  const closeModal = () => { if (modal) modal.hidden = true; };
+  if (localStorage.getItem(ageKey) === '18-plus') reveal();
+  triggers.forEach(trigger => trigger.addEventListener('click', () => {
+    if (localStorage.getItem(ageKey) === '18-plus') { reveal(); return; }
+    if (modal) { modal.hidden = false; const confirm = modal.querySelector('[data-age-confirm]'); if (confirm) confirm.focus(); }
+  }));
+  if (modal) {
+    const confirm = modal.querySelector('[data-age-confirm]');
+    const leave = modal.querySelector('[data-age-leave]');
+    if (confirm) confirm.addEventListener('click', () => { localStorage.setItem(ageKey, '18-plus'); reveal(); closeModal(); });
+    if (leave) leave.addEventListener('click', () => { closeModal(); });
+    modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+  }
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add('reveal'); observer.unobserve(entry.target); }
+    }), { threshold: .12 });
+    document.querySelectorAll('.panel, .timeline article, .callout, .stats .stat').forEach(el => observer.observe(el));
+  }
+});
+</script>
+</body></html>
