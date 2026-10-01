@@ -1,0 +1,6 @@
+/* Portfolio scaffold stylesheet.
+   The delivered HTML pages remain standalone with inline styles. This file is
+   the extension point for future shared styles when the site moves to a build.
+*/
+:root { color-scheme: dark; --ink: #f3eddf; --paper: #20252b; --red: #ef6a54; --blue: #70b9d7; }
+body { color: var(--ink); background: var(--paper); }
